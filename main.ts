@@ -1,8 +1,7 @@
-//% color="#00d2ff" icon="\uf06e" block="Robo Eyes Pro"
+//% color="#00d2ff" icon="\uf06e" block="Robo Eyes"
 namespace roboeyes {
     const OLED_ADDR = 0x3C;
 
-    // Odpowiedniki stanów humoru z kodu źródłowego Pythona
     export enum Mood {
         //% block="Zwykłe"
         DEFAULT = 0,
@@ -18,29 +17,27 @@ namespace roboeyes {
         SCARY = 5
     }
 
-    // Odpowiedniki pozycji (kierunków) z kodu Pythona
     export enum Position {
         //% block="Środek"
         CENTER = 0, 
-        //% block="Północ (Góra)"
+        //% block="Góra"
         N = 1, 
-        //% block="Północny-Wschód"
+        //% block="Prawy-Góra"
         NE = 2, 
-        //% block="Wschód (Prawo)"
+        //% block="Prawo"
         E = 3, 
-        //% block="Południowy-Wschód"
+        //% block="Prawy-Dół"
         SE = 4, 
-        //% block="Południe (Dół)"
+        //% block="Dół"
         S = 5, 
-        //% block="Południowy-Zachód"
+        //% block="Lewy-Dół"
         SW = 6, 
-        //% block="Zachód (Lewo)"
+        //% block="Lewo"
         W = 7, 
-        //% block="Północny-Zachód"
+        //% block="Lewy-Góra"
         NW = 8
     }
 
-    // Zmienne geometrii ekranu i oczu (wartości domyślne z Pythona)
     let screenWidth = 128;
     let screenHeight = 64;
     let _mood = Mood.DEFAULT;
@@ -52,9 +49,8 @@ namespace roboeyes {
     let spaceBetweenDefault = 10;
     let borderRadiusDefault = 8;
 
-    // Parametry dynamiczne (Current do płynnych przejść i Next jako cele)
     let eyeLwidthCurrent = eyeLwidthDefault;
-    let eyeLheightCurrent = 1; // Start z zamkniętymi oczami zgodnie z kodem źródłowym
+    let eyeLheightCurrent = 1; 
     let eyeLwidthNext = eyeLwidthDefault;
     let eyeLheightNext = eyeLheightDefault;
 
@@ -71,12 +67,6 @@ namespace roboeyes {
     let spaceBetweenCurrent = spaceBetweenDefault;
     let spaceBetweenNext = spaceBetweenDefault;
 
-    // Zmienne pomocnicze dla nastrojów (powieki)
-    let eyelidsAngryHeight = 0;
-    let eyelidsTiredHeight = 0;
-    let eyelidsHappyBottomOffset = 0;
-
-    // Bufor graficzny ekranu (128x64 pikseli podzielone na 8 stron)
     let screenBuf = pins.createBuffer(1024);
 
     function command(c: number) {
@@ -84,7 +74,6 @@ namespace roboeyes {
     }
 
     //% block="zainicjalizuj silnik Robo Eyes"
-    //% weight=100
     export function init() {
         pins.setPull(DigitalPin.P19, PinPullMode.PullUp);
         pins.setPull(DigitalPin.P20, PinPullMode.PullUp);
@@ -97,18 +86,13 @@ namespace roboeyes {
         ];
         for (let i = 0; i < initCmds.length; i++) command(initCmds[i]);
         
-        // Wyśrodkowanie startowe oczu
         let startX = Math.idiv(screenWidth - (eyeLwidthDefault + spaceBetweenDefault + eyeRwidthDefault), 2);
         let startY = Math.idiv(screenHeight - eyeLheightDefault, 2);
         eyeLx = startX; eyeLxNext = startX;
         eyeLy = startY; eyeLyNext = startY;
 
-        clear();
-        render();
-    }
-
-    function clear() {
         screenBuf.fill(0);
+        render();
     }
 
     function drawPixel(x: number, y: number, color: number) {
@@ -120,7 +104,6 @@ namespace roboeyes {
         else screenBuf[idx] &= ~(1 << bit);
     }
 
-    // Generator zaokrąglonych prostokątów (oczu) z zachowaniem promienia z kodu źródłowego
     function drawRoundRect(x: number, y: number, w: number, h: number, r: number, isLeft: boolean) {
         if (w <= 0 || h <= 0) return;
         if (r * 2 > w) r = Math.idiv(w, 2);
@@ -129,7 +112,6 @@ namespace roboeyes {
         let currentY = y;
         let currentH = h;
 
-        // Implementacja nakładek nastrojów (powieki) bezpośrednio modyfikująca wysokość rysowania
         if (_mood == Mood.ANGRY) {
             currentH = Math.idiv(h * 3, 4);
         } else if (_mood == Mood.TIRED) {
@@ -139,7 +121,6 @@ namespace roboeyes {
             currentH = Math.idiv(h * 3, 4);
         }
 
-        // Rysowanie rdzenia prostokąta
         for (let i = x + r; i < x + w - r; i++) {
             for (let j = currentY; j < currentY + currentH; j++) drawPixel(i, j, 1);
         }
@@ -148,13 +129,11 @@ namespace roboeyes {
             for (let j = x + w - r; j < x + w; j++) drawPixel(j, i, 1);
         }
 
-        // Rysowanie czterech zaokrąglonych rogów
         drawCorner(x + r, currentY + r, r, 0); 
         drawCorner(x + w - r - 1, currentY + r, r, 1); 
         drawCorner(x + r, currentY + currentH - r - 1, r, 2); 
         drawCorner(x + w - r - 1, currentY + currentH - r - 1, r, 3);
 
-        // Wycinanie specyficznych nastrojów (efekt groźnych oczu ściętych pod skosem)
         if (_mood == Mood.ANGRY) {
             if (isLeft) {
                 for (let i = 0; i < w; i++) {
@@ -181,13 +160,11 @@ namespace roboeyes {
     }
 
     //% block="ustaw nastrój oczu na %mood"
-    //% weight=85
     export function setMood(mood: Mood) {
         _mood = mood;
     }
 
     //% block="spójrz w kierunku %pos"
-    //% weight=80
     export function setPosition(pos: Position) {
         let max_x = screenWidth - (eyeLwidthDefault + spaceBetweenDefault + eyeRwidthDefault);
         let max_y = screenHeight - eyeLheightDefault;
@@ -203,35 +180,8 @@ namespace roboeyes {
         else { eyeLxNext = Math.idiv(max_x, 2); eyeLyNext = Math.idiv(max_y, 2); }
     }
 
-    //% block="zamknij oczy"
-    //% weight=75
-    export function closeEyes() {
-        eyeLheightNext = 1;
-        eyeRheightNext = 1;
-        eyeL_open = false;
-        eyeR_open = false;
-    }
-
-    //% block="otwórz oczy"
-    //% weight=70
-    export function openEyes() {
-        eyeL_open = true;
-        eyeR_open = true;
-        eyeLheightNext = eyeLheightDefault;
-        eyeRheightNext = eyeRheightDefault;
-    }
-
-    //% block="mrugnij oczami"
-    //% weight=76
-    export function blink() {
-        eyeLheightCurrent = 1;
-        eyeRheightCurrent = 1;
-    }
-
     //% block="odśwież i przelicz klatkę animacji"
-    //% weight=90
     export function update() {
-        // Obliczanie algorytmu Tweening (płynna animacja przejść współrzędnych krok po kroku)
         eyeLheightCurrent = (eyeLheightCurrent + eyeLheightNext) >> 1;
         let oLy = eyeLy + ((eyeLheightDefault - eyeLheightCurrent) >> 1);
 
@@ -246,9 +196,8 @@ namespace roboeyes {
         eyeRx = (eyeRx + eyeRxNext) >> 1;
         eyeRy = eyeLy;
 
-        clear();
+        screenBuf.fill(0);
         
-        // Generowanie oczu do bufora
         drawRoundRect(eyeLx, oLy, eyeLwidthCurrent, eyeLheightCurrent, borderRadiusDefault, true);
         drawRoundRect(eyeRx, oRy, eyeRwidthCurrent, eyeRheightCurrent, borderRadiusDefault, false);
 
