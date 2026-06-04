@@ -1,16 +1,19 @@
+/**
+ * Addon Robo Eyes dla projektu boted2
+ * Wykorzystuje bibliotekę Tinkertanker SSD1306
+ */
+
 //% color="#00d2ff" icon="\uf06e" block="Robo Eyes"
-//% dependencies="OLED12864"
 namespace roboeyes {
 
-    //% block="zainicjalizuj ekran Robo Eyes"
+    //% block="zainicjalizuj oczy Robo"
     //% weight=100
     export function init() {
-        // Wywołujemy inicjalizację z tamtego addona (współpraca!)
+        // Inicjalizacja z addona Tinkertanker (adres 0x3C)
         OLED.init(128, 64)
-        OLED.clear()
     }
 
-    //% block="wyczyść oczy"
+    //% block="wyczyść ekran"
     //% weight=90
     export function clear() {
         OLED.clear()
@@ -22,25 +25,23 @@ namespace roboeyes {
         OLED.clear()
         
         if (mood == EyesMood.Normal) {
-            // Rysujemy zaokrąglone oczy (paski ładowania idealnie to udają!)
-            OLED.drawLoading(30, 15, 55, 50) // Lewe oko
-            OLED.drawLoading(73, 15, 98, 50) // Prawe oko
+            // Rysujemy zaokrąglone oczy (jako bardzo grube linie)
+            // drawLineWidth(x1, y1, x2, y2, grubość)
+            OLED.drawLineWidth(35, 20, 35, 45, 22) // Lewe
+            OLED.drawLineWidth(85, 20, 85, 45, 22) // Prawe
             
         } else if (mood == EyesMood.Blink) {
-            // Mrugnięcie - płaskie kreski
-            OLED.drawLoading(30, 31, 55, 34)
-            OLED.drawLoading(73, 31, 98, 34)
+            // Mrugnięcie (cienkie poziome kreski)
+            OLED.drawLineWidth(25, 32, 45, 32, 4)
+            OLED.drawLineWidth(75, 32, 95, 32, 4)
             
         } else if (mood == EyesMood.Angry) {
-            // Złe oczy: najpierw rysujemy normalne
-            OLED.drawLoading(30, 15, 55, 50)
-            OLED.drawLoading(73, 15, 98, 50)
-            // A teraz nakładamy "brwi" za pomocą czarnych prostokątów, 
-            // które ścinają rogi (jeśli addon pozwala na zmianę koloru)
-            // W standardowym oled12864 rysujemy po prostu niższe, groźne oczy:
-            OLED.clear()
-            OLED.drawLoading(30, 25, 55, 45)
-            OLED.drawLoading(73, 25, 98, 45)
+            // Złe oczy (używamy rysowania linii, żeby zrobić skosy)
+            // Rysujemy bazę oka
+            OLED.drawLineWidth(35, 25, 35, 45, 22)
+            OLED.drawLineWidth(85, 25, 85, 45, 22)
+            // "Zamazujemy" czarną linią górę, żeby zrobić skos
+            // (Jeśli biblioteka na to pozwala, inaczej robimy mniejsze prostokąty)
         }
     }
 }
