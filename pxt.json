@@ -1,24 +1,14 @@
 {
-    "name": "boted3",
-    "version": "0.0.1",
-    "description": "Autonomiczny dodatek RoboEyes dla wyświetlacza OLED",
-    "dependencies": {
-        "core": "*",
-        "radio": "*",
-        "microphone": "*"
-    },
-    "files": [
-        "main.ts",
-        "README.md"
-    ],
-    "testFiles": [
-        "test.ts"
-    ],
-    "targetVersions": {
-        "target": "7.0.0"
-    },
-    "supportedTargets": [
-        "microbit"
-    ],
-    "preferredEditor": "tsprj"
+  "name": "roboeyes",
+  "version": "0.0.1",
+  "description": "RoboEyes OLED animations for MicroBot",
+  "dependencies": {
+    "core": "*",
+    "oled": "github:Tinkertanker/pxt-oled-ssd1306"
+  },
+  "files": [
+    "main.ts",
+    "roboeyes.ts"
+  ],
+  "public": true
 }
